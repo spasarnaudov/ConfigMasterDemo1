@@ -1,6 +1,6 @@
 package com.spascoding.configmasterdemo1
 
 data class ConfigItem(
-    val key: String,
-    val value: String
+    val appId: String,
+    val jsonData: String
 )

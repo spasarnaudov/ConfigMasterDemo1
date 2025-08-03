@@ -14,45 +14,61 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DemoViewModel @Inject constructor(private val application: Application) : ViewModel() {
-
-    val appId = "DemoApp1"
-    val AUTHORITY = "com.spascoding.configmaster.data.provider.ConfigProvider"
-    val CONTENT_URI: Uri = Uri.parse("content://$AUTHORITY/config")
+class DemoViewModel @Inject constructor(
+    private val application: Application
+) : ViewModel() {
 
     private val _receivedConfigs = MutableStateFlow<List<ConfigItem>>(emptyList())
     val receivedConfigs: StateFlow<List<ConfigItem>> = _receivedConfigs
 
-    fun addConfig() {
+    private val AUTHORITY = "com.spascoding.configmaster.data.provider.ConfigProvider"
+    private val CONTENT_URI = Uri.parse("content://$AUTHORITY/config")
+
+    fun addConfig(appId: String, jsonData: String) {
         val values = ContentValues().apply {
             put("appId", appId)
-            put("jsonData", """{"key1": "value1", "key2": "value2"}""")
+            put("jsonData", jsonData)
         }
-        application.applicationContext.contentResolver.insert(CONTENT_URI, values)
+        application.contentResolver.insert(CONTENT_URI, values)
+        fetchConfig(appId)
     }
 
-    fun updateConfig() {
+    fun updateConfig(appId: String, newJson: String) {
         val values = ContentValues().apply {
             put("appId", appId)
-            put("jsonData", """{"key1": "updatedValue1", "key2": "updatedValue2"}""")
+            put("jsonData", newJson)
         }
-        application.applicationContext.contentResolver.update(CONTENT_URI, values, null, null)
+        application.contentResolver.update(CONTENT_URI, values, null, null)
+        fetchConfig(appId)
     }
 
-    fun deleteConfig() {
-        application.applicationContext.contentResolver.delete(CONTENT_URI, null, arrayOf(appId))
+    fun deleteConfig(appId: String) {
+        application.contentResolver.delete(CONTENT_URI, null, arrayOf(appId))
+        fetchConfig(appId)
     }
 
-    fun fetchConfig() {
+    fun fetchConfig(appId: String) {
         viewModelScope.launch {
-            val cursor = application.applicationContext.contentResolver.query(CONTENT_URI, null, null, arrayOf(appId), null)
+            val cursor = application.contentResolver.query(
+                CONTENT_URI,
+                null,
+                null,
+                arrayOf(appId),
+                null
+            )
+
             val configs = mutableListOf<ConfigItem>()
 
             cursor?.use {
-                while (it.moveToNext()) {
-                    val key = it.getString(it.getColumnIndexOrThrow("appId"))
-                    val value = it.getString(it.getColumnIndexOrThrow("jsonData"))
-                    configs.add(ConfigItem(key, value))
+                if (it.moveToFirst()) {
+                    val appIdIndex = it.getColumnIndex("appId")
+                    val jsonIndex = it.getColumnIndex("jsonData")
+
+                    if (appIdIndex != -1 && jsonIndex != -1) {
+                        val id = it.getString(appIdIndex)
+                        val json = it.getString(jsonIndex)
+                        configs.add(ConfigItem(id, json ?: ""))
+                    }
                 }
             }
 
