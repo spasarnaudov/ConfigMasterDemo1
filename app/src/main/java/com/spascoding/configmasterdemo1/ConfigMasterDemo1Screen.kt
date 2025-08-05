@@ -8,7 +8,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,33 +42,36 @@ fun ConfigMasterDemo1Screen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Config Master Demo 1", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(16.dp))
-
-        // Show dialog when user clicks "Add Configuration"
-        Button(onClick = { showAddDialog = true }) {
-            Text("Add Configuration")
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("ConfigMaster Demo", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.width(24.dp))
+            Button(
+                onClick = { showAddDialog = true}
+            ) {
+                Icon(Icons.Filled.Add, "Add Configuration")
+            }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = fetchAppId,
             onValueChange = { fetchAppId = it },
             label = { Text("App ID to Fetch") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Button(onClick = {
-            if (fetchAppId.isNotBlank()) {
-                viewModel.fetchConfig(fetchAppId.trim())
-                keyboardController?.hide()
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = {
+                    if (fetchAppId.isNotBlank()) {
+                        viewModel.fetchConfig(fetchAppId.trim())
+                        keyboardController?.hide()
+                    }
+                }) {
+                    Icon(Icons.Default.Search, contentDescription = "Fetch")
+                }
             }
-        }) {
-            Text("Fetch Configuration")
-        }
+        )
 
         Spacer(Modifier.height(16.dp))
 
@@ -129,7 +134,6 @@ fun JsonViewer(
             .fillMaxWidth()
             .fillMaxHeight()
             .clickable { showConfirmDialog = true }
-            .padding(8.dp)
     ) {
         Text(
             text = "App ID: ${config.appId}",
