@@ -1,9 +1,12 @@
 package com.spascoding.configmasterdemo1
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.json.JSONObject
 
@@ -67,29 +71,15 @@ fun ConfigMasterDemo1Screen(
         Spacer(Modifier.height(16.dp))
 
         receivedConfig?.let { config ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        editAppId = config.appId
-                        editPairs = parseJsonToKeyValueList(config.jsonData)
-                        isEditMode = true
-                        showAddDialog = true
-                    }
-            ) {
-                OutlinedTextField(
-                    value = try {
-                        JSONObject(config.jsonData).toString(4)
-                    } catch (e: Exception) {
-                        config.jsonData
-                    },
-                    onValueChange = {},
-                    label = { Text("App ID: ${config.appId}") },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    enabled = false
-                )
-            }
+            JsonViewer(
+                config = config,
+                onEditConfirmed = { appId, pairs ->
+                    editAppId = appId
+                    editPairs = pairs
+                    isEditMode = true
+                    showAddDialog = true
+                }
+            )
         }
     }
 
@@ -115,6 +105,82 @@ fun ConfigMasterDemo1Screen(
     }
 
 }
+
+@Composable
+fun JsonViewer(
+    config: ConfigItem,
+    onEditConfirmed: (appId: String, keyValuePairs: List<KeyValuePair>) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val formattedJson = remember(config.jsonData) {
+        try {
+            JSONObject(config.jsonData).toString(4)
+        } catch (e: Exception) {
+            config.jsonData
+        }
+    }
+
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .clickable { showConfirmDialog = true }
+            .padding(8.dp)
+    ) {
+        Text(
+            text = "App ID: ${config.appId}",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
+                .padding(8.dp)
+        ) {
+            Text(
+                text = formattedJson,
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+                    .fillMaxWidth(),
+                style = LocalTextStyle.current.copy(
+                    lineHeight = 20.sp
+                )
+            )
+        }
+    }
+
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text("Edit Configuration?") },
+            text = { Text("Do you want to edit the configuration for App ID: ${config.appId}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConfirmDialog = false
+                    onEditConfirmed(
+                        config.appId,
+                        parseJsonToKeyValueList(config.jsonData)
+                    )
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+
 
 @Composable
 fun AddConfigDialog(
