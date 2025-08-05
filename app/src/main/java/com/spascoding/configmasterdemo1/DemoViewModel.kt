@@ -3,10 +3,8 @@ package com.spascoding.configmasterdemo1
 import android.app.Application
 import android.content.ContentValues
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.JsonObject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +16,8 @@ class DemoViewModel @Inject constructor(
     private val application: Application
 ) : ViewModel() {
 
-    private val _receivedConfigs = MutableStateFlow<List<ConfigItem>>(emptyList())
-    val receivedConfigs: StateFlow<List<ConfigItem>> = _receivedConfigs
+    private val _receivedConfig = MutableStateFlow<ConfigItem?>(null)
+    val receivedConfig: StateFlow<ConfigItem?> = _receivedConfig
 
     private val AUTHORITY = "com.spascoding.configmaster.data.provider.ConfigProvider"
     private val CONTENT_URI = Uri.parse("content://$AUTHORITY/config")
@@ -33,20 +31,6 @@ class DemoViewModel @Inject constructor(
         fetchConfig(appId)
     }
 
-    fun updateConfig(appId: String, newJson: String) {
-        val values = ContentValues().apply {
-            put("appId", appId)
-            put("jsonData", newJson)
-        }
-        application.contentResolver.update(CONTENT_URI, values, null, null)
-        fetchConfig(appId)
-    }
-
-    fun deleteConfig(appId: String) {
-        application.contentResolver.delete(CONTENT_URI, null, arrayOf(appId))
-        fetchConfig(appId)
-    }
-
     fun fetchConfig(appId: String) {
         viewModelScope.launch {
             val cursor = application.contentResolver.query(
@@ -57,7 +41,7 @@ class DemoViewModel @Inject constructor(
                 null
             )
 
-            val configs = mutableListOf<ConfigItem>()
+            var config: ConfigItem? = null
 
             cursor?.use {
                 if (it.moveToFirst()) {
@@ -67,12 +51,12 @@ class DemoViewModel @Inject constructor(
                     if (appIdIndex != -1 && jsonIndex != -1) {
                         val id = it.getString(appIdIndex)
                         val json = it.getString(jsonIndex)
-                        configs.add(ConfigItem(id, json ?: ""))
+                        config = ConfigItem(id, json ?: "")
                     }
                 }
             }
 
-            _receivedConfigs.value = configs
+            _receivedConfig.value = config
         }
     }
 
