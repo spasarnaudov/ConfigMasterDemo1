@@ -1,5 +1,6 @@
 package com.spascoding.configmasterdemo1
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -24,6 +25,10 @@ fun ConfigMasterDemo1Screen(
     val receivedConfig by viewModel.receivedConfig.collectAsState()
     var fetchAppId by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
+    var isEditMode by remember { mutableStateOf(false) }
+    var editAppId by remember { mutableStateOf("") }
+    var editPairs by remember { mutableStateOf<List<KeyValuePair>>(emptyList()) }
+
 
     Column(
         modifier = modifier
@@ -62,18 +67,38 @@ fun ConfigMasterDemo1Screen(
         Spacer(Modifier.height(16.dp))
 
         receivedConfig?.let { config ->
-            OutlinedTextField(
-                value = config.jsonData,
-                onValueChange = { },
-                label = { Text("App ID: ${config.appId}") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        editAppId = config.appId
+                        editPairs = parseJsonToKeyValueList(config.jsonData)
+                        isEditMode = true
+                        showAddDialog = true
+                    }
+            ) {
+                OutlinedTextField(
+                    value = try {
+                        JSONObject(config.jsonData).toString(4)
+                    } catch (e: Exception) {
+                        config.jsonData
+                    },
+                    onValueChange = {},
+                    label = { Text("App ID: ${config.appId}") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    enabled = false
+                )
+            }
         }
     }
 
     if (showAddDialog) {
         AddConfigDialog(
-            onDismiss = { showAddDialog = false },
+            onDismiss = {
+                showAddDialog = false
+                isEditMode = false
+            },
             onAdd = { appId, keyValuePairs ->
                 val jsonObject = JSONObject()
                 keyValuePairs.forEach { pair ->
@@ -81,35 +106,40 @@ fun ConfigMasterDemo1Screen(
                         jsonObject.put(pair.key, pair.value)
                     }
                 }
-                viewModel.addConfig(appId.trim(), jsonObject.toString())
+                viewModel.addConfig(appId, jsonObject.toString())
                 showAddDialog = false
-                keyboardController?.hide()
-            }
+            },
+            initialAppId = if (isEditMode) editAppId else "",
+            initialKeyValuePairs = if (isEditMode) editPairs else emptyList()
         )
     }
+
 }
 
 @Composable
 fun AddConfigDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, List<KeyValuePair>) -> Unit
+    onAdd: (String, List<KeyValuePair>) -> Unit,
+    initialAppId: String = "",
+    initialKeyValuePairs: List<KeyValuePair> = emptyList()
 ) {
-    var appId by remember { mutableStateOf("") }
-    val keyValueList = remember { mutableStateListOf(KeyValuePair()) }
+    var appId by remember { mutableStateOf(initialAppId) }
+    val keyValueList = remember { mutableStateListOf<KeyValuePair>().apply { addAll(initialKeyValuePairs.ifEmpty { listOf(KeyValuePair()) }) } }
 
     val listState = rememberLazyListState()
     var shouldScroll by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Configuration") },
+        title = { Text(if (initialAppId.isBlank()) "New Configuration" else "Edit Configuration") },
         text = {
             Column {
                 OutlinedTextField(
                     value = appId,
                     onValueChange = { appId = it },
                     label = { Text("App ID") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = initialAppId.isBlank() // prevent editing appId in edit mode
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -165,7 +195,7 @@ fun AddConfigDialog(
                     Text("Add Key-Value Pair")
                 }
 
-                // Scroll to bottom when a new item is added
+                // Auto scroll to last item
                 LaunchedEffect(shouldScroll, keyValueList.size) {
                     if (shouldScroll) {
                         listState.animateScrollToItem(keyValueList.lastIndex)
@@ -177,10 +207,10 @@ fun AddConfigDialog(
         confirmButton = {
             Button(onClick = {
                 if (appId.isNotBlank()) {
-                    onAdd(appId, keyValueList.toList())
+                    onAdd(appId.trim(), keyValueList.toList())
                 }
             }) {
-                Text("Add")
+                Text(if (initialAppId.isBlank()) "Add" else "Update")
             }
         },
         dismissButton = {
@@ -191,3 +221,11 @@ fun AddConfigDialog(
     )
 }
 
+fun parseJsonToKeyValueList(json: String): List<KeyValuePair> {
+    val list = mutableListOf<KeyValuePair>()
+    val jsonObject = JSONObject(json)
+    for (key in jsonObject.keys()) {
+        list.add(KeyValuePair(key, jsonObject.optString(key, "")))
+    }
+    return list
+}
