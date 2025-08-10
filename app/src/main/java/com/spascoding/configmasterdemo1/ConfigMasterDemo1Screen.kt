@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -61,6 +64,16 @@ fun ConfigMasterDemo1Screen(
             onValueChange = { fetchAppId = it },
             label = { Text("App ID to Fetch") },
             modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    if (fetchAppId.isNotBlank()) {
+                        viewModel.fetchConfig(fetchAppId.trim())
+                        keyboardController?.hide()
+                    }
+                }
+            ),
             trailingIcon = {
                 IconButton(onClick = {
                     if (fetchAppId.isNotBlank()) {
@@ -183,8 +196,6 @@ fun JsonViewer(
         )
     }
 }
-
-
 
 @Composable
 fun AddConfigDialog(
