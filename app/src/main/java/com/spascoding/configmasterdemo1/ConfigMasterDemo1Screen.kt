@@ -11,8 +11,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,43 +61,40 @@ fun ConfigMasterDemo1Screen(
 
         OutlinedTextField(
             value = fetchAppId,
-            onValueChange = { fetchAppId = it },
+            onValueChange = {
+                fetchAppId = it
+                if (fetchAppId.isNotBlank()) {
+                    viewModel.fetchConfig(fetchAppId.trim())
+                }
+            },
             label = { Text("App ID to Fetch") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    keyboardController?.hide()
-                    if (fetchAppId.isNotBlank()) {
-                        viewModel.fetchConfig(fetchAppId.trim())
-                        keyboardController?.hide()
-                    }
-                }
-            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             trailingIcon = {
                 IconButton(onClick = {
-                    if (fetchAppId.isNotBlank()) {
-                        viewModel.fetchConfig(fetchAppId.trim())
-                        keyboardController?.hide()
-                    }
+                    fetchAppId = ""
+                    viewModel.fetchConfig(fetchAppId.trim())
+                    keyboardController?.hide()
                 }) {
-                    Icon(Icons.Default.Search, contentDescription = "Fetch")
+                    Icon(Icons.Default.Clear, contentDescription = "Clear")
                 }
             }
         )
 
         Spacer(Modifier.height(16.dp))
 
-        receivedConfig?.let { config ->
-            JsonViewer(
-                config = config,
-                onEditConfirmed = { appId, pairs ->
-                    editAppId = appId
-                    editPairs = pairs
-                    isEditMode = true
-                    showAddDialog = true
-                }
-            )
+        if (fetchAppId.isNotBlank()) {
+            receivedConfig?.let { config ->
+                JsonViewer(
+                    config = config,
+                    onEditConfirmed = { appId, pairs ->
+                        editAppId = appId
+                        editPairs = pairs
+                        isEditMode = true
+                        showAddDialog = true
+                    }
+                )
+            }
         }
     }
 
