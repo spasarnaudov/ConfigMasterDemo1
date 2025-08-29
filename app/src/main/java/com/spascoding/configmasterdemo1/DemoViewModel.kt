@@ -22,22 +22,22 @@ class DemoViewModel @Inject constructor(
     private val AUTHORITY = "com.spascoding.configmaster.data.provider.ConfigProvider"
     private val CONTENT_URI = Uri.parse("content://$AUTHORITY/config")
 
-    fun addConfig(appId: String, jsonData: String) {
+    fun addConfig(configName: String, jsonData: String) {
         val values = ContentValues().apply {
-            put("appId", appId)
+            put("configName", configName)
             put("jsonData", jsonData)
         }
         application.contentResolver.insert(CONTENT_URI, values)
-        fetchConfig(appId)
+        fetchConfig(configName)
     }
 
-    fun fetchConfig(appId: String) {
+    fun fetchConfig(configName: String) {
         viewModelScope.launch {
             val cursor = application.contentResolver.query(
                 CONTENT_URI,
                 null,
                 null,
-                arrayOf(appId),
+                arrayOf(configName),
                 null
             )
 
@@ -45,11 +45,11 @@ class DemoViewModel @Inject constructor(
 
             cursor?.use {
                 if (it.moveToFirst()) {
-                    val appIdIndex = it.getColumnIndex("appId")
+                    val configName = it.getColumnIndex("configName")
                     val jsonIndex = it.getColumnIndex("jsonData")
 
-                    if (appIdIndex != -1 && jsonIndex != -1) {
-                        val id = it.getString(appIdIndex)
+                    if (configName != -1 && jsonIndex != -1) {
+                        val id = it.getString(configName)
                         val json = it.getString(jsonIndex)
                         config = ConfigItem(id, json ?: "")
                     }

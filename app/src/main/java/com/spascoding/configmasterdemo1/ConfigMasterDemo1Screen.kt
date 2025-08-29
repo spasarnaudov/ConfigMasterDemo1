@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -32,7 +31,7 @@ fun ConfigMasterDemo1Screen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val receivedConfig by viewModel.receivedConfig.collectAsState()
-    var fetchAppId by remember { mutableStateOf("") }
+    var fetchConfig by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
     var isEditMode by remember { mutableStateOf(false) }
     var editAppId by remember { mutableStateOf("") }
@@ -60,20 +59,20 @@ fun ConfigMasterDemo1Screen(
         Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = fetchAppId,
+            value = fetchConfig,
             onValueChange = {
-                fetchAppId = it
-                if (fetchAppId.isNotBlank()) {
-                    viewModel.fetchConfig(fetchAppId.trim())
+                fetchConfig = it
+                if (fetchConfig.isNotBlank()) {
+                    viewModel.fetchConfig(fetchConfig.trim())
                 }
             },
-            label = { Text("App ID to Fetch") },
+            label = { Text("Config to Fetch") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             trailingIcon = {
                 IconButton(onClick = {
-                    fetchAppId = ""
-                    viewModel.fetchConfig(fetchAppId.trim())
+                    fetchConfig = ""
+                    viewModel.fetchConfig(fetchConfig.trim())
                     keyboardController?.hide()
                 }) {
                     Icon(Icons.Default.Clear, contentDescription = "Clear")
@@ -83,7 +82,7 @@ fun ConfigMasterDemo1Screen(
 
         Spacer(Modifier.height(16.dp))
 
-        if (fetchAppId.isNotBlank()) {
+        if (fetchConfig.isNotBlank()) {
             receivedConfig?.let { config ->
                 JsonViewer(
                     config = config,
@@ -146,7 +145,7 @@ fun JsonViewer(
             .clickable { showConfirmDialog = true }
     ) {
         Text(
-            text = "App ID: ${config.appId}",
+            text = "App ID: ${config.name}",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -173,12 +172,12 @@ fun JsonViewer(
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
             title = { Text("Edit Configuration?") },
-            text = { Text("Do you want to edit the configuration for App ID: ${config.appId}?") },
+            text = { Text("Do you want to edit the configuration for App ID: ${config.name}?") },
             confirmButton = {
                 TextButton(onClick = {
                     showConfirmDialog = false
                     onEditConfirmed(
-                        config.appId,
+                        config.name,
                         parseJsonToKeyValueList(config.jsonData)
                     )
                 }) {
