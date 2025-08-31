@@ -13,9 +13,9 @@ android {
     defaultConfig {
         applicationId = "com.spascoding.configmasterdemo1"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
-        versionName = "1.0.${versionCode}"
+        versionName = "0.0.${versionCode}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,6 +43,7 @@ android {
 
 dependencies {
 
+    implementation(project(":configmasterhelper"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

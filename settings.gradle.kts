@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ConfigMasterDemo1"
 include(":app")
- 
+include(":configmasterhelper")
