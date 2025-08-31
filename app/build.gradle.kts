@@ -42,8 +42,6 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":configmasterhelper"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -67,4 +65,5 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     ksp ("androidx.hilt:hilt-compiler:1.2.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("com.spascoding:config-master-helper:0.0.1")
 }
