@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.maven
-import org.gradle.kotlin.dsl.repositories
 import java.io.FileInputStream
 import java.util.Properties
 

@@ -18,14 +18,14 @@ class DemoViewModel @Inject constructor(
     val receivedConfig: StateFlow<ConfigItem?> = _receivedConfig
 
     fun addConfig(configName: String, jsonData: String) {
-        com.spascoding.configmasterhelper.kotlinhelper.ConfigMasterHelper.insertConfig(application, configName, jsonData)
+        com.spascoding.configmasterhelper.ConfigMasterHelper.insertConfig(application, configName, jsonData)
 //        com.spascoding.configmasterhelper.javahelper.ConfigMasterHelper.insertConfig(application, configName, jsonData)
     }
 
     fun fetchConfig(configName: String) {
 
         viewModelScope.launch {
-            val json = com.spascoding.configmasterhelper.kotlinhelper.ConfigMasterHelper.fetchConfig(application, configName)
+            val json = com.spascoding.configmasterhelper.ConfigMasterHelper.fetchConfig(application, configName)
 //            val json = com.spascoding.configmasterhelper.javahelper.ConfigMasterHelper.fetchConfig(application, configName)
             _receivedConfig.value = ConfigItem(configName, json ?: "")
         }

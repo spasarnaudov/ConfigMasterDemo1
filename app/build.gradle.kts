@@ -65,5 +65,5 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     ksp ("androidx.hilt:hilt-compiler:1.2.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    implementation("com.spascoding:config-master-helper:0.0.1")
+    implementation("com.spascoding:config-master-helper:0.0.2")
 }
