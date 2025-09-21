@@ -22,12 +22,21 @@ class DemoViewModel @Inject constructor(
 //        com.spascoding.configmasterhelper.javahelper.ConfigMasterHelper.insertConfig(application, configName, jsonData)
     }
 
-    fun fetchConfig(configName: String) {
-
+    fun fetchConfigParam(
+        configName: String = "",
+        parameter: String = ""
+    ) {
         viewModelScope.launch {
-            val json = com.spascoding.configmasterhelper.ConfigMasterHelper.fetchConfig(application, configName)
+            if (parameter.isNotEmpty()) {
+                val json = com.spascoding.configmasterhelper.ConfigMasterHelper.fetchConfigParam(application, configName, parameter)
+//            val json = com.spascoding.configmasterhelper.javahelper.ConfigMasterHelper.fetchConfigParam(application, configName, parameter)
+                _receivedConfig.value = ConfigItem(configName, json ?: "")
+            } else {
+                val json = com.spascoding.configmasterhelper.ConfigMasterHelper.fetchConfig(application, configName
+                )
 //            val json = com.spascoding.configmasterhelper.javahelper.ConfigMasterHelper.fetchConfig(application, configName)
-            _receivedConfig.value = ConfigItem(configName, json ?: "")
+                _receivedConfig.value = ConfigItem(configName, json ?: "")
+            }
         }
     }
 

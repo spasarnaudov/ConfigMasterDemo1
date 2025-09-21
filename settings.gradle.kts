@@ -29,6 +29,8 @@ dependencyResolutionManagement {
 
     repositories {
         google()
+        mavenCentral()
+        mavenLocal()
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/spasarnaudov/ConfigMaster")
@@ -37,8 +39,6 @@ dependencyResolutionManagement {
                 password = localProperties.getProperty("gpr.key") ?: ""
             }
         }
-
-        mavenCentral()
     }
 }
 
